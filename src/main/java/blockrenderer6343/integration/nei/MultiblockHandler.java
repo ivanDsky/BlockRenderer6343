@@ -8,7 +8,6 @@ import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
@@ -20,7 +19,11 @@ import org.jetbrains.annotations.Nullable;
 import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
 import com.gtnewhorizon.structurelib.alignment.constructable.IConstructable;
 
+import blockrenderer6343.client.utils.BRButton;
+import blockrenderer6343.client.utils.BRUtil;
 import blockrenderer6343.client.utils.ConstructableData;
+import blockrenderer6343.client.utils.GuiSlider;
+import blockrenderer6343.client.utils.ItemMultiblockPreview;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.RecipeSearchField;
@@ -28,6 +31,7 @@ import codechicken.nei.SearchField;
 import codechicken.nei.SearchTokenParser;
 import codechicken.nei.api.API;
 import codechicken.nei.api.ItemFilter;
+import codechicken.nei.recipe.GuiOverlayButton;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.GuiRecipeButton.UpdateRecipeButtonsEvent;
 import codechicken.nei.recipe.RecipeCatalysts;
@@ -48,11 +52,6 @@ public abstract class MultiblockHandler extends TemplateRecipeHandler {
     protected IConstructable[] currentMultiblocks;
     protected int oldRecipe;
     protected static RecipeSearchField recipeSearchField;
-    protected static final PositionedStack DUMMY_STACK = new PositionedStack(
-            new ItemStack(Items.poisonous_potato),
-            0,
-            9999,
-            false);
 
     static {
         // this is a hack to let us hijack the "in recipe search" field while in the preview
@@ -99,6 +98,9 @@ public abstract class MultiblockHandler extends TemplateRecipeHandler {
     private void loadRecipes(ItemStack stack) {
         currentMultiblocks = null;
         oldRecipe = -1;
+        // the preview item means its stored controller
+        if (stack.getItem() == ItemMultiblockPreview.INSTANCE) stack = ItemMultiblockPreview.getControllerStack(stack);
+        if (stack == null) return;
         ObjectSet<IConstructable> multiblocks = tryLoadingMultiblocks(stack);
         if (multiblocks.isEmpty()) return;
         lastStack = stack;
@@ -174,13 +176,46 @@ public abstract class MultiblockHandler extends TemplateRecipeHandler {
 
     @Override
     public List<PositionedStack> getIngredientStacks(int recipe) {
-        return Collections.emptyList();
+        // ingredients are whatever the structure view currently renders (respects the layer slider),
+        // reversed so the recipe starts with controllers; only the preview item is visible, the rest is
+        // parked off-screen (below y=9999) for favorites/bookmarks
+        if (GuiMultiblockHandler.renderer == null) return Collections.emptyList();
+        List<ItemStack> stacks = BRUtil.getIngredients(GuiMultiblockHandler.renderer);
+        List<PositionedStack> ingredients = new ArrayList<>(stacks.size());
+        for (int i = stacks.size() - 1; i >= 0; i--) {
+            if (BRNEIConfig.getConfigValue(BRNEIConfig.FILTER_HATCH) && BRUtil.hatchFilter.test(stacks.get(i)))
+                continue;
+            ingredients.add(new PositionedStack(stacks.get(i), 0, 9999 + ingredients.size(), false));
+        }
+        return ingredients;
     }
 
     @Override
     public PositionedStack getResultStack(int recipe) {
-        // There needs to be some sort of result stack for the in recipe search to work
-        return DUMMY_STACK;
+        // dedicated preview item: renders as the controller but means building the whole structure, so NEI
+        // bookmarks/autocraft don't consider the multiblock done once the controller itself is crafted.
+        // parked off-screen like the ingredients: it must exist for favorites/in-recipe search, not be seen
+        return new PositionedStack(
+                ItemMultiblockPreview.of(getConstructableStack(currentMultiblocks[recipe]), buildLoreLines(recipe)),
+                0,
+                9999,
+                false);
+    }
+
+    /** @return the current slider state as lore lines, e.g. "Tier: 2", "Glass: 3 (Tempered Glass)" */
+    private List<String> buildLoreLines(int recipe) {
+        List<String> lore = new ArrayList<>();
+        ConstructableData data = ConstructableData.getTierData(currentMultiblocks[recipe]);
+        for (BRButton button : guiHandler.allButtons) {
+            if (!(button instanceof GuiSlider slider)) continue;
+            ItemStack channelItem = data.getChannelItems().get(StringUtils.uncapitalize(slider.name));
+            lore.add(
+                    EnumChatFormatting.GRAY + slider.name
+                            + ": "
+                            + slider.getValueText()
+                            + (channelItem != null ? " (" + channelItem.getDisplayName() + ")" : ""));
+        }
+        return lore;
     }
 
     @Override
@@ -245,8 +280,8 @@ public abstract class MultiblockHandler extends TemplateRecipeHandler {
     @SuppressWarnings({ "unused", "rawtypes" })
     public static void onPostOverlay(UpdateRecipeButtonsEvent.Post event) {
         if (event.gui instanceof GuiRecipe recipe && recipe.getHandler() instanceof MultiblockHandler) {
-            // We have to remove the recipe overlay now that this handler has a result stack
-            event.buttonList.clear();
+            // NEI's overlay button can't fill a multiblock anywhere; keep the favorite button working
+            event.buttonList.removeIf(GuiOverlayButton.class::isInstance);
         }
     }
 }

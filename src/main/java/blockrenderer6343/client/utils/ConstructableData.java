@@ -26,6 +26,7 @@ public class ConstructableData {
     private static final ConstructableData EMPTY = new ConstructableData();
 
     private final Object2IntMap<String> channelMaxTierMap = new Object2IntOpenHashMap<>();
+    private final Object2ObjectMap<String, ItemStack> channelItems = new Object2ObjectOpenHashMap<>();
     private final Long2IntMap itemTiers = new Long2IntOpenHashMap();
     private final Long2ObjectMap<String> itemChannels = new Long2ObjectOpenHashMap<>();
     private String currentChannel = "";
@@ -57,6 +58,8 @@ public class ConstructableData {
         }
         if (!channel.isEmpty()) {
             itemChannels.put(hash, channel);
+            // channel -> its tier 1 item; scans add items in ascending tier order, so first wins
+            channelItems.putIfAbsent(channel, item.copy());
         }
         itemTiers.put(hash, tier);
         return true;
@@ -109,6 +112,10 @@ public class ConstructableData {
 
     public Object2IntMap<String> getChannelMaxTierMap() {
         return channelMaxTierMap;
+    }
+
+    public Object2ObjectMap<String, ItemStack> getChannelItems() {
+        return channelItems;
     }
 
     public Long2IntMap getItemTiers() {

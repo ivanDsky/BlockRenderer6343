@@ -1,6 +1,9 @@
 package blockrenderer6343;
 
+import net.minecraftforge.client.MinecraftForgeClient;
+
 import blockrenderer6343.client.utils.BRUtil;
+import blockrenderer6343.client.utils.ItemMultiblockPreview;
 import blockrenderer6343.client.world.ObserverWorld;
 import blockrenderer6343.client.world.TrackedDummyWorld;
 import blockrenderer6343.integration.gregtech.GTNEIUtil;
@@ -9,6 +12,7 @@ import codechicken.nei.guihook.GuiContainerManager;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.registry.GameRegistry;
 import gregtech.api.GregTechAPI;
 
 public class ClientProxy extends CommonProxy {
@@ -17,6 +21,8 @@ public class ClientProxy extends CommonProxy {
     // etc, and register them with the GameRegistry."
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
+        GameRegistry.registerItem(ItemMultiblockPreview.INSTANCE, ItemMultiblockPreview.REGISTRY_NAME);
+        MinecraftForgeClient.registerItemRenderer(ItemMultiblockPreview.INSTANCE, ItemMultiblockPreview.INSTANCE);
         GuiContainerManager.addInputHandler(new InputHandler());
         GuiContainerManager.addTooltipHandler(new InputHandler());
         if (BlockRenderer6343.isGT5uNHLoaded) {

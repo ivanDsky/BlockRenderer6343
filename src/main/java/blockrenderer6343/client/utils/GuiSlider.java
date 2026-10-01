@@ -106,8 +106,13 @@ public class GuiSlider extends BRButton {
         setValue(Math.round(minValue + (maxValue - minValue) * (float) (mouseX - xPosition + 4) / (width - 8)));
     }
 
+    /** @return the value part of the slider text, formatted exactly as rendered (e.g. "All") */
+    public String getValueText() {
+        return valueStringSupplier == null ? value + "" : valueStringSupplier.apply(value);
+    }
+
     public String getText(FontRenderer font) {
-        String val = ": " + (valueStringSupplier == null ? value + "" : valueStringSupplier.apply(value));
+        String val = ": " + getValueText();
         String trimmed = font.trimStringToWidth(name, (int) (width / scale) - font.getStringWidth(val));
         return trimmed + val;
     }

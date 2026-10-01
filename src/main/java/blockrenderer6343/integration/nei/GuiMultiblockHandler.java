@@ -326,7 +326,9 @@ public abstract class GuiMultiblockHandler {
     }
 
     public void drawMultiblock(int recipeIndex) {
-        GuiRecipe<?> recipeGui = (GuiRecipe<?>) NEIClientUtils.getGuiContainer();
+        // The crafting tree renders recipes inside tooltips of its own GUI (not a GuiRecipe),
+        // mirroring NEIRecipeWidget.getGuiRecipe(), bail out instead of blindly casting.
+        if (!(NEIClientUtils.getGuiContainer() instanceof GuiRecipe<?>recipeGui)) return;
         guiMouseX = GuiDraw.getMousePosition().x;
         guiMouseY = GuiDraw.getMousePosition().y;
         guiLeft = recipeGui.guiLeft;

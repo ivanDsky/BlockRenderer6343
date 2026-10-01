@@ -7,6 +7,7 @@ import com.gtnewhorizon.structurelib.StructureLibAPI;
 
 import blockrenderer6343.BlockRenderer6343;
 import blockrenderer6343.Tags;
+import blockrenderer6343.client.utils.ItemMultiblockPreview;
 import blockrenderer6343.integration.gregtech.GTNEIMultiblockHandler;
 import blockrenderer6343.integration.structurelib.StructureCompatNEIHandler;
 import codechicken.nei.api.API;
@@ -40,6 +41,8 @@ public class NEIConfig implements IConfigureNEI {
 
     @Override
     public void loadConfig() {
+        // display only item, must not show up in the NEI panel or searches
+        API.hideItem(BlockRenderer6343.MOD_ID + ":" + ItemMultiblockPreview.REGISTRY_NAME);
         addHandler(new StructureCompatNEIHandler());
 
         if (BlockRenderer6343.isNEELoaded) {
