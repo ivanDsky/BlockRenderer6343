@@ -6,8 +6,8 @@ import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
 import com.gtnewhorizon.structurelib.StructureLibAPI;
 
 import blockrenderer6343.BlockRenderer6343;
+import blockrenderer6343.ItemMultiblockPreview;
 import blockrenderer6343.Tags;
-import blockrenderer6343.client.utils.ItemMultiblockPreview;
 import blockrenderer6343.integration.gregtech.GTNEIMultiblockHandler;
 import blockrenderer6343.integration.structurelib.StructureCompatNEIHandler;
 import codechicken.nei.api.API;

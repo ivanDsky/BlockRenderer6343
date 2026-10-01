@@ -19,11 +19,11 @@ import org.jetbrains.annotations.Nullable;
 import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
 import com.gtnewhorizon.structurelib.alignment.constructable.IConstructable;
 
+import blockrenderer6343.ItemMultiblockPreview;
 import blockrenderer6343.client.utils.BRButton;
 import blockrenderer6343.client.utils.BRUtil;
 import blockrenderer6343.client.utils.ConstructableData;
 import blockrenderer6343.client.utils.GuiSlider;
-import blockrenderer6343.client.utils.ItemMultiblockPreview;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.RecipeSearchField;
